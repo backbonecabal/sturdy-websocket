@@ -55,6 +55,7 @@ export default class SturdyWebSocket implements WebSocket {
     public onopen: ((event: Event) => void) | null = null;
     public ondown: ((event: CloseEvent | undefined) => void) | null = null;
     public onreopen: ((event: Event) => void) | null = null;
+    public onpong: ((event: Event) => void) | null = null;
     public readonly CONNECTING = SturdyWebSocket.CONNECTING;
     public readonly OPEN = SturdyWebSocket.OPEN;
     public readonly CLOSING = SturdyWebSocket.CLOSING;
@@ -158,6 +159,12 @@ export default class SturdyWebSocket implements WebSocket {
         this.debugLog("WebSocket permanently closed by client.");
     }
 
+    public ping(): void {
+        if (this.ws && this.ws.readyState === this.OPEN) {
+            (this.ws as any).ping(noop);
+        }
+    }
+
     public send(data: any): void {
         if (this.ws && this.ws.readyState === this.OPEN) {
             this.ws.send(data);
@@ -235,6 +242,7 @@ export default class SturdyWebSocket implements WebSocket {
             this.disposeSocket();
             this.handleClose(undefined);
         }, connectTimeout);
+        (ws as any).on('pong', (event: any) => this.handlePong(event));
         this.ws = ws;
     }
 
@@ -275,6 +283,13 @@ export default class SturdyWebSocket implements WebSocket {
             return;
         }
         this.dispatchEventOfType("message", event);
+    }
+
+    private handlePong(event: any): void {
+        if (this.isClosed) {
+            return;
+        }
+        this.dispatchEventOfType("pong", event);
     }
 
     private handleClose(event: CloseEvent | undefined): void {
@@ -418,6 +433,11 @@ export default class SturdyWebSocket implements WebSocket {
             case "error":
                 if (this.onerror) {
                     this.onerror(event);
+                }
+                break;
+            case "pong":
+                if (this.onpong) {
+                    this.onpong(event);
                 }
                 break;
             case "message":
