@@ -22,7 +22,7 @@ jobs:
             - name: Build
               run: yarn run build
             - name: Run tests
-              run: yarn test:jest
+              run: yarn test
               env:
                   CI: true
                   TS_JEST_LOG: ts-jest.log
