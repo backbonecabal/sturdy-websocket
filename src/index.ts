@@ -402,6 +402,8 @@ export default class SturdyWebSocket implements WebSocket {
         this.ws.onopen = noop;
         this.ws.close(closeCode, reason);
         this.ws = undefined;
+        this._socket.onclose()
+
     }
 
     private clearAllTimeouts(): void {
@@ -528,3 +530,4 @@ function pluralize(s: string, n: number): string {
 function noop(): void {
     // Nothing.
 }
+/** @exports SturdyWebSocket */
